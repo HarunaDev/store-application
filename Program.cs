@@ -47,5 +47,32 @@ namespace CProduction
         {
             return price - (price * discountPercentage / 100);
         }
+
+
+    }
+
+    // sub class: clothing (Discountable)
+    class Clothing : Product, IDiscountable
+    {
+        // property to store the size as an integer
+        public int Size { get; set; }
+
+        // constructor
+        public Clothing(string name, decimal price, int size) : base(name, price)
+        {
+            Size = size;
+        }
+
+        // method to convert size from int to a size name
+        public string GetSizeName()
+        {
+            return Size switch
+            {
+                1 => "SM",
+                2 => "MD",
+                3 => "LG",
+                _ => "Unknown Size"
+            };
+        }
     }
 }
