@@ -86,25 +86,28 @@ namespace CProduction
     class Electronics : Product, IDiscountable
     {
         public bool Warranty { set; get; }
+        public string Brand { set; get; }
 
-        public Electronics(string name, decimal price, bool warranty)
+        public Electronics(string name, decimal price, bool warranty, string brand)
             : base(name, price)
         {
             Warranty = warranty;
+            Brand = brand;
         }
 
         public string GetWarrantyMessage()
         {
-            return Warranty switch
+            if (Warranty)
             {
-                true => "Warranty for 2 years Available",
-                false => "Product can be replaced if returned in good condition within 24hrs",
-                _ => "Unknown"
-            };
+                return "Warranty for 2 years available";
+            }
+
+            return "Can be replaced within 24 hours if returned in good condition";
         }
         public override void DisplayProductDetails()
         {
             base.DisplayProductDetails();
+            Console.WriteLine($"Brand: {Brand}");
             Console.WriteLine($"Warranty: {GetWarrantyMessage()}");
         }
 
