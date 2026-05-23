@@ -82,6 +82,38 @@ namespace CProduction
         }
     }
 
+    // electronics
+    class Electronics : Product, IDiscountable
+    {
+        public bool Warranty { set; get; }
+
+        public Electronics(string name, decimal price, bool warranty)
+            : base(name, price)
+        {
+            Warranty = warranty;
+        }
+
+        public string GetWarrantyMessage()
+        {
+            return Warranty switch
+            {
+                true => "Warranty for 2 years Available",
+                false => "Product can be replaced if returned in good condition within 24hrs",
+                _ => "Unknown"
+            };
+        }
+        public override void DisplayProductDetails()
+        {
+            base.DisplayProductDetails();
+            Console.WriteLine($"Warranty: {GetWarrantyMessage()}");
+        }
+
+        public decimal ApplyDiscount(decimal percentage)
+        {
+            return CalculateDiscount(Price, percentage);
+        }
+    }
+
     class Program
     {
         static void Main()
