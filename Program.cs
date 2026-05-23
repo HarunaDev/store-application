@@ -121,29 +121,33 @@ namespace CProduction
     {
         static void Main()
         {
-            List<Clothing> catalog = new List<Clothing>();
+            List<Product> products = new List<Product>();
+            // List<Electronics> items = new List<Electronics>();
 
-            catalog.Add(new Clothing("Samo Vintage Shirt", 49.99m, 2));
-            catalog.Add(new Clothing("Short Pants", 9.99m, 1));
-            catalog.Add(new Clothing("Traditional Wears", 82.99m, 3));
+            // Clothing
+            products.Add(new Clothing("Samo Vintage Shirt", 49.99m, 2));
+            products.Add(new Clothing("Short Pants", 9.99m, 1));
+            products.Add(new Clothing("Traditional Wears", 82.99m, 3));
 
-            // for loop
-            for (int i = 0; i < catalog.Count; i++)
-            {
-                catalog[i].DisplayProductDetails();
-            }
+            // Electronics
+            products.Add(new Electronics("Kettle", 34.55m, true, "Philips"));
+            products.Add(new Electronics("Kettle", 34.55m, false, "LG"));
+            products.Add(new Electronics("Washing Machine", 134.55m, true, "LG"));
+            products.Add(new Electronics("Television", 334.55m, true, "Philips"));
 
             // foreach loop
-            foreach (Clothing item in catalog)
+            foreach (Product product in products)
             {
-                item.DisplayProductDetails();
+                product.DisplayProductDetails();
+                Console.WriteLine("----------------");
+
             }
 
-            decimal discountedPrice = catalog[0].ApplyDiscount(10);
+            decimal discountedPrice = ((IDiscountable)products[0]).ApplyDiscount(10);
 
             Console.WriteLine($"Discounted price: {discountedPrice:C}");
 
-            Console.WriteLine(Product.CalculateDiscount(50m, 10m));
+            // Console.WriteLine(Product.CalculateDiscount(50m, 10m));
         }
     }
 }
