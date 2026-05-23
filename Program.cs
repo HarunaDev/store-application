@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System;
 
 namespace CProduction
 {
@@ -7,7 +7,6 @@ namespace CProduction
     {
         decimal ApplyDiscount(decimal percentage);
     }
-
 
     // base product class
     class Product
@@ -18,18 +17,18 @@ namespace CProduction
         // public property
         public string Name { get; set; }
 
-        // public property with additional logic in setter
+        // public property with validation
         public decimal Price
         {
             get { return _price; }
             set
             {
-                // prevents setting the price to negative
-                if (value >= 0) _price = value;
+                if (value >= 0)
+                    _price = value;
             }
         }
 
-        // constrctor
+        // constructor
         public Product(string name, decimal price)
         {
             Name = name;
@@ -42,28 +41,24 @@ namespace CProduction
             Console.WriteLine($"Product: {Name}, Price: {Price:C}");
         }
 
-        // static method to calculate discount
+        // static method
         public static decimal CalculateDiscount(decimal price, decimal discountPercentage)
         {
             return price - (price * discountPercentage / 100);
         }
-
-
     }
 
-    // sub class: clothing (Discountable)
+    // subclass
     class Clothing : Product, IDiscountable
     {
-        // property to store the size as an integer
         public int Size { get; set; }
 
-        // constructor
-        public Clothing(string name, decimal price, int size) : base(name, price)
+        public Clothing(string name, decimal price, int size)
+            : base(name, price)
         {
             Size = size;
         }
 
-        // method to convert size from int to a size name
         public string GetSizeName()
         {
             return Size switch
@@ -75,14 +70,12 @@ namespace CProduction
             };
         }
 
-        // Override method to include size details
         public override void DisplayProductDetails()
         {
             base.DisplayProductDetails();
             Console.WriteLine($"Size: {GetSizeName()}");
         }
 
-        // Implementation of IDiscountable interface
         public decimal ApplyDiscount(decimal percentage)
         {
             return CalculateDiscount(Price, percentage);
@@ -94,26 +87,28 @@ namespace CProduction
         static void Main()
         {
             List<Clothing> catalog = new List<Clothing>();
-            // Creating a clothing objects
-            catalog.Add(new Clothing("Samo vintage shirt", 49.99m, 2));
-            catalog.Add(new Clothing("Short Pants", 9.99m, 1));
-            catalog.Add(new Clothing("Traditional Wears", 82.99m, 2));
 
-            // display product details
-            for (int i = 0; 1 < catalog.Count; i++)
+            catalog.Add(new Clothing("Samo Vintage Shirt", 49.99m, 2));
+            catalog.Add(new Clothing("Short Pants", 9.99m, 1));
+            catalog.Add(new Clothing("Traditional Wears", 82.99m, 3));
+
+            // for loop
+            for (int i = 0; i < catalog.Count; i++)
             {
-                catalog(i).DisplayProductDetails();
+                catalog[i].DisplayProductDetails();
             }
 
+            // foreach loop
             foreach (Clothing item in catalog)
             {
                 item.DisplayProductDetails();
             }
 
-            // Apply discount to the clothing product
             decimal discountedPrice = catalog[0].ApplyDiscount(10);
-            Console.WriteLine($"Shorts price after discount: {discountedPrice:C}");
-            Console.WriteLine(Product.CalculateDiscount(29, 50m, 0.1m));
+
+            Console.WriteLine($"Discounted price: {discountedPrice:C}");
+
+            Console.WriteLine(Product.CalculateDiscount(50m, 10m));
         }
     }
 }
