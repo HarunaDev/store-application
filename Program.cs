@@ -88,4 +88,32 @@ namespace CProduction
             return CalculateDiscount(Price, percentage);
         }
     }
+
+    class Program
+    {
+        static void Main()
+        {
+            List<Clothing> catalog = new List<Clothing>();
+            // Creating a clothing objects
+            catalog.Add(new Clothing("Samo vintage shirt", 49.99m, 2));
+            catalog.Add(new Clothing("Short Pants", 9.99m, 1));
+            catalog.Add(new Clothing("Traditional Wears", 82.99m, 2));
+
+            // display product details
+            for (int i = 0; 1 < catalog.Count; i++)
+            {
+                catalog(i).DisplayProductDetails();
+            }
+
+            foreach (Clothing item in catalog)
+            {
+                item.DisplayProductDetails();
+            }
+
+            // Apply discount to the clothing product
+            decimal discountedPrice = catalog[0].ApplyDiscount(10);
+            Console.WriteLine($"Shorts price after discount: {discountedPrice:C}");
+            Console.WriteLine(Product.CalculateDiscount(29, 50m, 0.1m));
+        }
+    }
 }
