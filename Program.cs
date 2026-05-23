@@ -16,6 +16,7 @@ namespace CProduction
 
         // public property
         public string Name { get; set; }
+        public bool HasDiscount { get; set; }
 
         // public property with validation
         public decimal Price
@@ -29,22 +30,29 @@ namespace CProduction
         }
 
         // constructor
-        public Product(string name, decimal price)
+        public Product(string name, decimal price, bool hasDiscount)
         {
             Name = name;
             Price = price;
+            HasDiscount = hasDiscount;
         }
 
         // virtual method
         public virtual void DisplayProductDetails()
         {
             Console.WriteLine($"Product: {Name}, Price: {Price:C}");
+            if (HasDiscount && this is IDiscountable discountable)
+            {
+                decimal discountedPrice = discountable.ApplyDiscount(5);
+
+                Console.WriteLine($"Discounted Price: {discountedPrice:C}");
+            }
         }
 
         // static method
         public static decimal CalculateDiscount(decimal price, decimal discountPercentage)
         {
-            return price - (price * discountPercentage / 100);
+            return price - (price * (discountPercentage / 100));
         }
     }
 
@@ -53,8 +61,8 @@ namespace CProduction
     {
         public int Size { get; set; }
 
-        public Clothing(string name, decimal price, int size)
-            : base(name, price)
+        public Clothing(string name, decimal price, int size, bool hasDiscount)
+            : base(name, price, hasDiscount)
         {
             Size = size;
         }
@@ -88,8 +96,8 @@ namespace CProduction
         public bool Warranty { set; get; }
         public string Brand { set; get; }
 
-        public Electronics(string name, decimal price, bool warranty, string brand)
-            : base(name, price)
+        public Electronics(string name, decimal price, bool warranty, string brand, bool hasDiscount)
+            : base(name, price, hasDiscount)
         {
             Warranty = warranty;
             Brand = brand;
@@ -125,15 +133,15 @@ namespace CProduction
             // List<Electronics> items = new List<Electronics>();
 
             // Clothing
-            products.Add(new Clothing("Samo Vintage Shirt", 49.99m, 2));
-            products.Add(new Clothing("Short Pants", 9.99m, 1));
-            products.Add(new Clothing("Traditional Wears", 82.99m, 3));
+            products.Add(new Clothing("Samo Vintage Shirt", 49.99m, 2, true));
+            products.Add(new Clothing("Short Pants", 9.99m, 1, false));
+            products.Add(new Clothing("Traditional Wears", 82.99m, 3, true));
 
             // Electronics
-            products.Add(new Electronics("Kettle", 34.55m, true, "Philips"));
-            products.Add(new Electronics("Kettle", 34.55m, false, "LG"));
-            products.Add(new Electronics("Washing Machine", 134.55m, true, "LG"));
-            products.Add(new Electronics("Television", 334.55m, true, "Philips"));
+            products.Add(new Electronics("Kettle", 34.55m, true, "Philips", false));
+            products.Add(new Electronics("Kettle", 34.55m, false, "LG", true));
+            products.Add(new Electronics("Washing Machine", 134.55m, true, "LG", false));
+            products.Add(new Electronics("Television", 334.55m, true, "Philips", true));
 
             // foreach loop
             foreach (Product product in products)
