@@ -74,5 +74,18 @@ namespace CProduction
                 _ => "Unknown Size"
             };
         }
+
+        // Override method to include size details
+        public override void DisplayProductDetails()
+        {
+            base.DisplayProductDetails();
+            Console.WriteLine($"Size: {GetSizeName()}");
+        }
+
+        // Implementation of IDiscountable interface
+        public decimal ApplyDiscount(decimal percentage)
+        {
+            return CalculateDiscount(Price, percentage);
+        }
     }
 }
