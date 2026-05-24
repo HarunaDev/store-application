@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json;
 
 namespace CProduction
 {
@@ -148,8 +149,10 @@ namespace CProduction
             {
                 product.DisplayProductDetails();
                 Console.WriteLine("----------------");
-
             }
+
+            string json = JsonConvert.SerializeObject(products, Formatting.Indented);
+            Console.WriteLine(json);
 
             decimal discountedPrice = ((IDiscountable)products[0]).ApplyDiscount(10);
 
