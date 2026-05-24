@@ -1,1 +1,16 @@
 GET http://localhost:5010
+
+###
+
+GET http://localhost:5010/api/products
+
+###
+
+POST http://localhost:5010/api/products
+Content-Type: application/json
+
+{
+  "name": "Phone",
+  "price": 1200,
+  "hasDiscount": true
+}
