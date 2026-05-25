@@ -4,6 +4,8 @@ public class Product
 {
     private decimal _price;
 
+    public int Id { get; set; }
+
     public string Name { get; set; } = "";
 
     public bool HasDiscount { get; set; }
@@ -18,8 +20,14 @@ public class Product
         }
     }
 
-    public Product(string name, decimal price, bool hasDiscount)
+    public Product(
+        int id,
+        string name,
+        decimal price,
+        bool hasDiscount
+    )
     {
+        Id = id;
         Name = name;
         Price = price;
         HasDiscount = hasDiscount;

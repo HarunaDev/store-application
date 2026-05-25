@@ -5,11 +5,12 @@ public class Clothing : Product, IDiscountable
     public int Size { get; set; }
 
     public Clothing(
+        int id,
         string name,
         decimal price,
         int size,
         bool hasDiscount
-    ) : base(name, price, hasDiscount)
+    ) : base(id, name, price, hasDiscount)
     {
         Size = size;
     }

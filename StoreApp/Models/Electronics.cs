@@ -7,12 +7,13 @@ public class Electronics : Product, IDiscountable
     public string Brand { get; set; } = "";
 
     public Electronics(
+        int id,
         string name,
         decimal price,
         bool warranty,
         string brand,
         bool hasDiscount
-    ) : base(name, price, hasDiscount)
+    ) : base(id, name, price, hasDiscount)
     {
         Warranty = warranty;
         Brand = brand;
