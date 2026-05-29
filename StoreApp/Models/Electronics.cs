@@ -12,8 +12,9 @@ public class Electronics : Product, IDiscountable
         decimal price,
         bool warranty,
         string brand,
-        bool hasDiscount
-    ) : base(id, name, price, hasDiscount)
+        bool hasDiscount,
+        int categoryId
+    ) : base(id, name, price, hasDiscount, categoryId)
     {
         Warranty = warranty;
         Brand = brand;

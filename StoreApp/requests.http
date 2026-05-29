@@ -10,22 +10,59 @@ POST http://localhost:5010/api/products
 Content-Type: application/json
 
 {
-  "name": "Phone",
-  "price": 1200,
-  "hasDiscount": true
+  "name": "Nike Hoodie",
+  "price": 100,
+  "hasDiscount": true,
+  "productType": "clothing",
+  "categoryId": 1,
+  "size": 3
 }
 
 ###
 
-PUT http://localhost:5010/api/products/2
+PUT http://localhost:5010/api/products/3
 Content-Type: application/json
 
 {
-  "name": "Samo Vintage Short",
-  "price": 29,
-  "hasDiscount": true
+  "id": 3,
+  "name": "Nike Hoodie",
+  "hasDiscount": true,
+  "categoryId": 1,
+  "category": {
+    "id": 1,
+    "name": "Clothing"
+  },
+  "price": 119
 }
 
 ###
 
 DELETE http://localhost:5010/api/products/2
+
+###
+
+GET http://localhost:5010/api/categories
+
+###
+
+POST http://localhost:5010/api/categories
+Content-Type: application/json
+
+{
+  "name": "Gaming"
+}
+
+###
+
+POST http://localhost:5010/api/products
+Content-Type: application/json
+
+{
+  "name": "iPhone 15",
+  "price": 1500,
+  "hasDiscount": true,
+  "productType": "electronics",
+  "categoryId": 2,
+  "warranty": true,
+  "brand": "Apple"
+}

@@ -9,8 +9,9 @@ public class Clothing : Product, IDiscountable
         string name,
         decimal price,
         int size,
-        bool hasDiscount
-    ) : base(id, name, price, hasDiscount)
+        bool hasDiscount,
+        int categoryId
+    ) : base(id, name, price, hasDiscount, categoryId)
     {
         Size = size;
     }

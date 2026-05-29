@@ -1,3 +1,4 @@
+using StoreApp.DTOs;
 using StoreApp.Models;
 
 namespace StoreApp.Services;
@@ -6,8 +7,11 @@ public class ProductService
 {
     private readonly List<Product> _products;
 
-    public ProductService()
+    private readonly CategoryService _categoryService;
+
+    public ProductService(CategoryService categoryService)
     {
+        _categoryService = categoryService;
         _products = new List<Product>
         {
             new Clothing(
@@ -15,7 +19,8 @@ public class ProductService
                 "Samo Vintage Shirt",
                 49.99m,
                 2,
-                true
+                true,
+                1
             ),
 
             new Electronics(
@@ -24,7 +29,8 @@ public class ProductService
                 334.55m,
                 true,
                 "Philips",
-                true
+                true,
+                2
             )
         };
     }
@@ -39,13 +45,49 @@ public class ProductService
         return _products.FirstOrDefault(p => p.Id == id);
     }
 
-    public Product AddProduct(Product product)
+    public Product AddProduct(CreateProductDto dto)
     {
-        product.Id = _products.Max(p => p.Id) + 1;
+        Product product;
+
+        if (dto.ProductType.ToLower() == "clothing")
+        {
+            product = new Clothing(
+                _products.Max(p => p.Id) + 1,
+                dto.Name,
+                dto.Price,
+                dto.Size ?? 1,
+                dto.HasDiscount,
+                dto.CategoryId
+            );
+        }
+        else if (dto.ProductType.ToLower() == "electronics")
+        {
+            product = new Electronics(
+                _products.Max(p => p.Id) + 1,
+                dto.Name,
+                dto.Price,
+                dto.Warranty ?? false,
+                dto.Brand ?? "",
+                dto.HasDiscount,
+                dto.CategoryId
+            );
+        }
+        else
+        {
+            throw new Exception("Invalid product type");
+        }
+
+        product.Category = _categoryService.GetCategoryById(dto.CategoryId);
 
         _products.Add(product);
 
         return product;
+
+        // product.Id = _products.Max(p => p.Id) + 1;
+
+        // _products.Add(product);
+
+        // return product;
     }
 
     public bool UpdateProduct(int id, Product updatedProduct)
