@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace StoreApp.Models;
 
 public class Product
@@ -9,6 +11,10 @@ public class Product
     public string Name { get; set; } = "";
 
     public bool HasDiscount { get; set; }
+
+    public int CategoryId { get; set; }
+
+    public Category? Category { get; set; }
 
     public decimal Price
     {
@@ -24,13 +30,15 @@ public class Product
         int id,
         string name,
         decimal price,
-        bool hasDiscount
+        bool hasDiscount,
+        int categoryId
     )
     {
         Id = id;
         Name = name;
         Price = price;
         HasDiscount = hasDiscount;
+        CategoryId = categoryId;
     }
 
     public virtual decimal GetFinalPrice()

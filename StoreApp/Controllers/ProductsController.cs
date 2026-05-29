@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using StoreApp.Models;
 using StoreApp.Services;
+using StoreApp.DTOs;
 
 namespace StoreApp.Controllers;
 
@@ -35,9 +36,9 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult AddProduct(Product product)
+    public IActionResult AddProduct(CreateProductDto dto)
     {
-        var createdProduct = _productService.AddProduct(product);
+        var createdProduct = _productService.AddProduct(dto);
 
         return CreatedAtAction(
             nameof(GetProduct),
