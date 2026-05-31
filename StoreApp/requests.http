@@ -10,12 +10,12 @@ POST http://localhost:5010/api/products
 Content-Type: application/json
 
 {
-  "name": "Nike Hoodie",
-  "price": 100,
+  "name": "Samo Fashion",
+  "price": 140,
   "hasDiscount": true,
   "productType": "clothing",
   "categoryId": 1,
-  "size": 3
+  "size": 5
 }
 
 ###
@@ -25,23 +25,23 @@ Content-Type: application/json
 
 {
   "id": 3,
-  "name": "Nike Hoodie",
+  "name": "Samo Custom 2 piece",
   "hasDiscount": true,
   "categoryId": 1,
   "category": {
     "id": 1,
     "name": "Clothing"
   },
-  "price": 119
+  "price": 120
 }
 
 ###
 
-DELETE http://localhost:5010/api/products/2
+DELETE http://localhost:5010/api/products/3
 
 ###
 
-GET http://localhost:5010/api/categories
+GET http://localhost:5010/api/categories/1
 
 ###
 
@@ -49,7 +49,7 @@ POST http://localhost:5010/api/categories
 Content-Type: application/json
 
 {
-  "name": "Gaming"
+  "name": "Cosmetics"
 }
 
 ###
