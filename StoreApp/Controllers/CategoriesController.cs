@@ -22,6 +22,18 @@ public class CategoriesController : ControllerBase
         return Ok(_categoryService.GetCategories());
     }
 
+    [HttpGet("{id}")]
+    public IActionResult GetCategory(int id)
+    {
+        var category = _categoryService.GetCategoryById(id);
+
+        if (category is null)
+        {
+            return NotFound();
+        }
+        return Ok(category);
+    }
+
     [HttpPost]
     public IActionResult AddCategory(CreateCategoryDto dto)
     {

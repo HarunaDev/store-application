@@ -9,9 +9,12 @@ public class ProductService
 
     private readonly CategoryService _categoryService;
 
-    public ProductService(CategoryService categoryService)
+    private readonly ILogger<ProductService> _logger;
+
+    public ProductService(CategoryService categoryService, ILogger<ProductService> logger)
     {
         _categoryService = categoryService;
+        _logger = logger;
         _products = new List<Product>
         {
             new Clothing(
@@ -59,6 +62,10 @@ public class ProductService
                 dto.HasDiscount,
                 dto.CategoryId
             );
+            _logger.LogInformation(
+            "Product created successfully. ProductId={ProductId}",
+            product.Id
+        );
         }
         else if (dto.ProductType.ToLower() == "electronics")
         {
@@ -81,8 +88,13 @@ public class ProductService
 
         _products.Add(product);
 
+        _logger.LogInformation(
+            "Creating product. Name={Name}, Type={Type}, CategoryId={CategoryId}",
+            dto.Name,
+            dto.ProductType,
+            dto.CategoryId
+        );
         return product;
-
         // product.Id = _products.Max(p => p.Id) + 1;
 
         // _products.Add(product);
@@ -96,12 +108,21 @@ public class ProductService
 
         if (existingProduct is null)
         {
+            _logger.LogWarning(
+                "Update failed. Product {ProductId} not found",
+                id
+            );
             return false;
         }
 
         existingProduct.Name = updatedProduct.Name;
         existingProduct.Price = updatedProduct.Price;
         existingProduct.HasDiscount = updatedProduct.HasDiscount;
+
+        _logger.LogInformation(
+            "Updating product {ProductId}",
+            id
+        );
 
         return true;
     }
@@ -112,10 +133,18 @@ public class ProductService
 
         if (product is null)
         {
+            _logger.LogWarning(
+                "Delete failed. Product {ProductId} not found",
+                id
+            );
             return false;
         }
 
         _products.Remove(product);
+        _logger.LogInformation(
+            "Deleting product {ProductId}",
+            id
+        );
 
         return true;
     }
