@@ -2,9 +2,11 @@ using Microsoft.AspNetCore.Mvc;
 using StoreApp.Models;
 using StoreApp.Services;
 using StoreApp.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace StoreApp.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/products")]
 public class ProductsController : ControllerBase

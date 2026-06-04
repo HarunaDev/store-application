@@ -2,9 +2,11 @@ using Microsoft.AspNetCore.Mvc;
 using StoreApp.DTOs;
 using StoreApp.Models;
 using StoreApp.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace StoreApp.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/categories")]
 public class CategoriesController : ControllerBase
