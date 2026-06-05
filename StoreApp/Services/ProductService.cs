@@ -50,56 +50,27 @@ public class ProductService
 
     public Product AddProduct(CreateProductDto dto)
     {
-        Product product;
+        int nextId = _products.Any()
+        ? _products.Max(p => p.Id) + 1
+        : 1;
 
-        if (dto.ProductType.ToLower() == "clothing")
-        {
-            product = new Clothing(
-                _products.Max(p => p.Id) + 1,
-                dto.Name,
-                dto.Price,
-                dto.Size ?? 1,
-                dto.HasDiscount,
-                dto.CategoryId
-            );
-            _logger.LogInformation(
-            "Product created successfully. ProductId={ProductId}",
-            product.Id
-        );
-        }
-        else if (dto.ProductType.ToLower() == "electronics")
-        {
-            product = new Electronics(
-                _products.Max(p => p.Id) + 1,
-                dto.Name,
-                dto.Price,
-                dto.Warranty ?? false,
-                dto.Brand ?? "",
-                dto.HasDiscount,
-                dto.CategoryId
-            );
-        }
-        else
-        {
-            throw new Exception("Invalid product type");
-        }
+        var category = _categoryService.GetCategoryById(dto.CategoryId);
 
-        product.Category = _categoryService.GetCategoryById(dto.CategoryId);
+        if (category is null)
+            throw new Exception("Invalid category");
 
+        var product = new Product(nextId, dto.Name, dto.Price, dto.HasDiscount, dto.CategoryId);
+
+        product.Category = category;
+        _logger.LogInformation(
+                    "Creating product. Name={Name}, CategoryId={CategoryId}",
+                    dto.Name,
+                    dto.CategoryId
+                );
         _products.Add(product);
 
-        _logger.LogInformation(
-            "Creating product. Name={Name}, Type={Type}, CategoryId={CategoryId}",
-            dto.Name,
-            dto.ProductType,
-            dto.CategoryId
-        );
+
         return product;
-        // product.Id = _products.Max(p => p.Id) + 1;
-
-        // _products.Add(product);
-
-        // return product;
     }
 
     public bool UpdateProduct(int id, Product updatedProduct)
