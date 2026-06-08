@@ -1,8 +1,15 @@
 using Serilog;
+using FluentValidation;
+// using FluentValidation.DependencyInjectionExtensions;
 using StoreApp.Services;
+using StoreApp.Security;
+using StoreApp.Validators;
+using StoreApp.Extensions;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +36,7 @@ builder.Services.AddSingleton<CategoryService>();
 builder.Services.AddSingleton<PasswordService>();
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddSingleton<AuthService>();
+builder.Services.AddSingleton<HtmlSanitizerService>();
 
 builder.Services.AddControllers();
 
@@ -44,6 +52,8 @@ builder.Services.AddAuthentication(
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
 
+            ClockSkew = TimeSpan.Zero,
+
             ValidIssuer =
                 builder.Configuration["Jwt:Issuer"],
 
@@ -55,10 +65,39 @@ builder.Services.AddAuthentication(
                     Encoding.UTF8.GetBytes(
                         builder.Configuration["Jwt:SecretKey"]!))
         };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            Log.Warning(context.Exception, "JWT Authentication Failed");
+
+            return Task.CompletedTask;
+        },
+
+        OnTokenValidated = context =>
+        {
+            Log.Information("User authenticated successfully");
+
+            return Task.CompletedTask;
+        }
+    };
 });
 
-
 builder.Services.AddAuthorization();
+
+builder.Services.AddValidatorsFromAssemblyContaining<ProductValidator>();
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter(
+        "ApiPolicy",
+        config =>
+        {
+            config.PermitLimit = 100;
+            config.Window = TimeSpan.FromMinutes(1);
+        });
+});
 
 builder.Services.AddSwaggerGen(options =>
             {
@@ -104,9 +143,23 @@ builder.Services.AddSwaggerGen(options =>
             Array.Empty<string>()
         }
     });
-                
-            });
+
+});
+
 var app = builder.Build();
+
+app.UseHttpsRedirection();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
+app.UseRateLimiter();
+
+app.UseGlobalExceptionHandler();
+
+app.UseSecurityHeaders();
 
 app.UseSerilogRequestLogging();
 

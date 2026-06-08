@@ -1,12 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
+using StoreApp.DTOs;
 using StoreApp.Models;
 using StoreApp.Services;
-using StoreApp.DTOs;
-using Microsoft.AspNetCore.Authorization;
+
+
 
 namespace StoreApp.Controllers;
 
 [Authorize]
+[EnableRateLimiting("ApiPolicy")]
 [ApiController]
 [Route("api/products")]
 public class ProductsController : ControllerBase
@@ -38,7 +42,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult AddProduct(CreateProductDto dto)
+    public IActionResult AddProduct([FromBody] CreateProductDto dto)
     {
         var createdProduct = _productService.AddProduct(dto);
 
