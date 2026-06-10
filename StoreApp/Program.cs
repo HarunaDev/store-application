@@ -1,6 +1,5 @@
 using Serilog;
 using FluentValidation;
-// using FluentValidation.DependencyInjectionExtensions;
 using StoreApp.Services;
 using StoreApp.Security;
 using StoreApp.Validators;
@@ -29,7 +28,6 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 builder.Services.AddEndpointsApiExplorer();
-// builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<ProductService>();
 builder.Services.AddSingleton<CategoryService>();
