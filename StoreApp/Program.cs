@@ -4,7 +4,9 @@ using StoreApp.Services;
 using StoreApp.Security;
 using StoreApp.Validators;
 using StoreApp.Extensions;
+using StoreApp.Data;
 using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.RateLimiting;
@@ -33,10 +35,16 @@ builder.Services.AddSingleton<ProductService>();
 builder.Services.AddSingleton<CategoryService>();
 builder.Services.AddSingleton<PasswordService>();
 builder.Services.AddSingleton<TokenService>();
-builder.Services.AddSingleton<AuthService>();
+builder.Services.AddScoped<AuthService>();
 builder.Services.AddSingleton<HtmlSanitizerService>();
 
 builder.Services.AddControllers();
+
+builder.Services.AddDbContext<StoreAppDbContext>(
+    options =>
+        options.UseNpgsql(
+            builder.Configuration.GetConnectionString(
+                "DefaultConnection")));
 
 builder.Services.AddAuthentication(
     JwtBearerDefaults.AuthenticationScheme)

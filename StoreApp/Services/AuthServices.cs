@@ -1,20 +1,26 @@
 using StoreApp.DTOs;
 using StoreApp.Models;
+using StoreApp.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace StoreApp.Services;
 
 public class AuthService
 {
-    private readonly List<User> _users = [];
+    // private readonly List<User> _users = [];
 
     private readonly PasswordService _passwordService;
 
     private readonly TokenService _tokenService;
 
+    private readonly StoreAppDbContext _context;
+
     public AuthService(
+        StoreAppDbContext context,
         PasswordService passwordService,
         TokenService tokenService)
     {
+        _context = context;
         _passwordService =
             passwordService;
 
@@ -22,42 +28,44 @@ public class AuthService
             tokenService;
     }
 
-    public void Register(RegisterDto dto)
+    public async Task RegisterAsync(RegisterDto dto)
     {
-        if (_users.Any(
-    u =>
-        u.Email.Equals(
-            dto.Email,
-            StringComparison.OrdinalIgnoreCase)
-        ||
-        u.UserName.Equals(
-            dto.UserName,
-            StringComparison.OrdinalIgnoreCase)))
+        
+        var exists =
+        await _context.Users.AnyAsync(
+            u =>
+                u.Email == dto.Email ||
+                u.UserName == dto.UserName);
+
+        if (exists)
         {
             throw new Exception(
                 "Username or Email already exists");
         }
 
-        _users.Add(new User
+        var user = new User
         {
-            Id = _users.Count + 1,
             UserName = dto.UserName,
             Email = dto.Email,
             PasswordHash =
                 _passwordService.Hash(
                     dto.Password)
-        });
+        };
+
+        _context.Users.Add(user);
+
+        await _context.SaveChangesAsync();
     }
 
-    public string Login(LoginDto dto)
+    public async Task<AuthResponseDto> LoginAsync(
+    LoginDto dto)
     {
-        var user = _users.FirstOrDefault(
+        var user = await _context.Users.FirstOrDefaultAsync(
             u => u.Email == dto.Email);
 
         if (user is null)
         {
-            throw new Exception(
-                "Invalid credentials");
+            throw new UnauthorizedAccessException("Invalid credentials");
         }
 
         var valid =
@@ -71,8 +79,71 @@ public class AuthService
                 "Invalid credentials");
         }
 
-        return _tokenService
-            .GenerateAccessToken(
-                user.Email);
+        var accessToken =
+            _tokenService.GenerateAccessToken(
+                user.Id,
+                user.Email,
+                user.UserName);
+
+        var refreshToken =
+            _tokenService.GenerateRefreshToken();
+
+        _context.RefreshTokens.Add(
+            new RefreshToken
+            {
+                Token = refreshToken,
+                UserId = user.Id,
+                ExpiresAt =
+                    DateTime.UtcNow.AddDays(7)
+            });
+
+        await _context.SaveChangesAsync();
+
+        return new AuthResponseDto
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken
+        };
+    }
+
+    public async Task<AuthResponseDto> RefreshTokenAsync(
+        RefreshTokenRequestDto dto)
+    {
+        var token =
+            await _context.RefreshTokens
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(
+                    r => r.Token ==
+                         dto.RefreshToken);
+
+        if (token is null)
+        {
+            throw new Exception(
+                "Invalid refresh token");
+        }
+
+        if (token.IsRevoked)
+        {
+            throw new Exception(
+                "Refresh token revoked");
+        }
+
+        if (token.ExpiresAt < DateTime.UtcNow)
+        {
+            throw new Exception(
+                "Refresh token expired");
+        }
+
+        var accessToken =
+            _tokenService.GenerateAccessToken(
+                token.User.Id,
+                token.User.Email,
+                token.User.UserName);
+
+        return new AuthResponseDto
+        {
+            AccessToken = accessToken,
+            RefreshToken = token.Token
+        };
     }
 }

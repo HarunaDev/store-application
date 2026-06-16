@@ -17,24 +17,36 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public IActionResult Register(
+    public async Task<IActionResult> Register(
         RegisterDto dto)
     {
-        _authService.Register(dto);
+        await _authService.RegisterAsync(dto);
 
         return Ok();
     }
 
     [HttpPost("login")]
-    public IActionResult Login(
+    public async Task<IActionResult> Login(
         LoginDto dto)
     {
-        var token =
-            _authService.Login(dto);
+        // var token =
+        //     _authService.Login(dto);
 
-        return Ok(new
-        {
-            accessToken = token
-        });
+        // return Ok(new
+        // {
+        //     accessToken = token
+        // });
+        var result =
+        await _authService.LoginAsync(dto);
+
+        return Ok(result);
+    }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> RefreshToken(RefreshTokenRequestDto dto)
+    {
+        var result = await _authService.RefreshTokenAsync(dto);
+
+        return Ok(result);
     }
 }

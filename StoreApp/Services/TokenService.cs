@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
@@ -16,13 +17,20 @@ public class TokenService
     }
 
     public string GenerateAccessToken(
-        string email)
+        int userId, string email, string userName)
     {
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim(
-                ClaimTypes.Email,
-                email)
+            // new Claim(
+            //     ClaimTypes.Email,
+            //     email)
+            new(JwtRegisteredClaimNames.Sub, userId.ToString()),
+            new(JwtRegisteredClaimNames.Email, email),
+            new(JwtRegisteredClaimNames.UniqueName, userName),
+
+            // Optional but useful
+            new(ClaimTypes.NameIdentifier, userId.ToString()),
+            new(ClaimTypes.Name, userName)
         };
 
         var key = new SymmetricSecurityKey(
@@ -48,5 +56,12 @@ public class TokenService
 
         return new JwtSecurityTokenHandler()
             .WriteToken(token);
+    }
+
+    public string GenerateRefreshToken()
+    {
+        var bytes = RandomNumberGenerator.GetBytes(64);
+
+        return Convert.ToBase64String(bytes);
     }
 }
