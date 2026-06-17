@@ -8,14 +8,6 @@ namespace StoreApp.Services;
 
 public class TokenService
 {
-    private readonly IConfiguration _configuration;
-
-    public TokenService(
-        IConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
-
     public string GenerateAccessToken(
         int userId, string email, string userName)
     {
@@ -35,7 +27,7 @@ public class TokenService
 
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(
-                _configuration["Jwt:SecretKey"]!));
+                Environment.GetEnvironmentVariable("JWT_SECRET_KEY")!));
 
         var creds = new SigningCredentials(
             key,
@@ -44,9 +36,9 @@ public class TokenService
         var token =
             new JwtSecurityToken(
                 issuer:
-                    _configuration["Jwt:Issuer"],
+                    Environment.GetEnvironmentVariable("JWT_ISSUER"),
                 audience:
-                    _configuration["Jwt:Audience"],
+                    Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
                 claims: claims,
                 expires:
                     DateTime.UtcNow.AddMinutes(

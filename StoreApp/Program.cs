@@ -12,7 +12,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using System.Text;
+using DotNetEnv;
 
+Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration()
@@ -41,11 +43,22 @@ builder.Services.AddSingleton<HtmlSanitizerService>();
 
 builder.Services.AddControllers();
 
+var connectionString =
+    $"Host={Environment.GetEnvironmentVariable("DB_HOST")};" +
+    $"Port={Environment.GetEnvironmentVariable("DB_PORT")};" +
+    $"Database={Environment.GetEnvironmentVariable("DB_NAME")};" +
+    $"Username={Environment.GetEnvironmentVariable("DB_USER")};" +
+    $"Password={Environment.GetEnvironmentVariable("DB_PASSWORD")};" +
+    $"SSL Mode=Require;Trust Server Certificate=true";
+
 builder.Services.AddDbContext<StoreAppDbContext>(
     options =>
         options.UseNpgsql(
-            builder.Configuration.GetConnectionString(
-                "DefaultConnection")));
+            connectionString
+            // builder.Configuration.GetConnectionString(
+            //     "DefaultConnection")
+            
+            ));
 
 builder.Services.AddAuthentication(
     JwtBearerDefaults.AuthenticationScheme)
@@ -61,16 +74,14 @@ builder.Services.AddAuthentication(
 
             ClockSkew = TimeSpan.Zero,
 
-            ValidIssuer =
-                builder.Configuration["Jwt:Issuer"],
+            ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
 
-            ValidAudience =
-                builder.Configuration["Jwt:Audience"],
+            ValidAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
 
             IssuerSigningKey =
                 new SymmetricSecurityKey(
                     Encoding.UTF8.GetBytes(
-                        builder.Configuration["Jwt:SecretKey"]!))
+                        Environment.GetEnvironmentVariable("JWT_SECRET_KEY")!))
         };
 
     options.Events = new JwtBearerEvents
