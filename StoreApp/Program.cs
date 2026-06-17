@@ -36,6 +36,7 @@ builder.Services.AddSingleton<CategoryService>();
 builder.Services.AddSingleton<PasswordService>();
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<UserService>();
 builder.Services.AddSingleton<HtmlSanitizerService>();
 
 builder.Services.AddControllers();
