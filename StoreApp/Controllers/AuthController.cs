@@ -44,7 +44,7 @@ public class AuthController : ControllerBase
         }
     }
 
-    [ProducesResponseType(typeof(ApiResponse<TokenDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<AuthResultDto>), StatusCodes.Status200OK)]
     [HttpPost("login")]
     public async Task<IActionResult> Login(
         LoginDto dto)
