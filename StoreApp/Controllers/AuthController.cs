@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using StoreApp.DTOs;
 using StoreApp.Services;
 using StoreApp.DTOs.Responses;
+using StoreApp.DTOs.Auth;
 
 namespace StoreApp.Controllers;
 
@@ -43,23 +44,11 @@ public class AuthController : ControllerBase
         }
     }
 
-    [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<TokenDto>), StatusCodes.Status200OK)]
     [HttpPost("login")]
     public async Task<IActionResult> Login(
         LoginDto dto)
     {
-        // var token =
-        //     _authService.Login(dto);
-
-        // return Ok(new
-        // {
-        //     accessToken = token
-        // });
-
-        // var result =
-        // await _authService.LoginAsync(dto);
-
-        // return Ok(result);
         try
         {
             var result = await _authService.LoginAsync(dto);
@@ -69,7 +58,7 @@ public class AuthController : ControllerBase
                 return NotFound();
             }
 
-            return Ok(new ApiResponse<AuthResponseDto>
+            return Ok(new ApiResponse<AuthResultDto>
             {
                 Success = true,
                 Message = "User Logged in successfully",
@@ -86,7 +75,7 @@ public class AuthController : ControllerBase
         }
     }
 
-    [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<TokenDto>), StatusCodes.Status200OK)]
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken(RefreshTokenRequestDto dto)
     {
@@ -99,7 +88,7 @@ public class AuthController : ControllerBase
                 return NotFound();
             }
 
-            return Ok(new ApiResponse<AuthResponseDto>
+            return Ok(new ApiResponse<TokenDto>
             {
                 Success = true,
                 Message = "Success",
