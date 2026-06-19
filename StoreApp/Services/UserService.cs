@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using StoreApp.Data;
-using StoreApp.DTOs;
+using StoreApp.DTOs.User;
 
 namespace StoreApp.Services;
 
@@ -25,7 +25,7 @@ public class UserService
             .ToListAsync();
     }
 
-    public async Task<UserResponseDto?> GetUserByIdAsync(int id)
+    public async Task<UserResponseDto?> GetUserByIdAsync(string id)
     {
         return await _context.Users
             .Where(u => u.Id == id)

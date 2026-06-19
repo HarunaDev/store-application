@@ -1,8 +1,10 @@
+using StoreApp.Helpers;
+
 namespace StoreApp.Models;
 
 public class RefreshToken
 {
-    public int Id { get; set; }
+    public string Id { get; set; } = IdGenerator.GenerateId();
 
     public string Token { get; set; } = "";
 
@@ -10,7 +12,7 @@ public class RefreshToken
 
     public bool IsRevoked { get; set; }
 
-    public int UserId { get; set; }
+    public string UserId { get; set; } = "";
 
     public User User { get; set; } = null!;
 }

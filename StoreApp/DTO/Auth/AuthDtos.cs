@@ -2,7 +2,7 @@ namespace StoreApp.DTOs.Auth;
 
 public class AuthResultDto
 {
-    public int UserId { get; set; }
+    public string UserId { get; set; } = "";
     public required TokenDto Tokens { get; set; }
 }
 
@@ -14,7 +14,7 @@ public class TokenDto
 
 public class LoginDto
 {
-    public required string Email { get; set; }
+    public string Email { get; set; } = "";
     public required string Password { get; set; }
 }
 

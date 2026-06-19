@@ -9,7 +9,7 @@ namespace StoreApp.Services;
 public class TokenService
 {
     public string GenerateAccessToken(
-        int userId, string email, string userName)
+        string userId, string email, string userName)
     {
         var claims = new List<Claim>
         {
