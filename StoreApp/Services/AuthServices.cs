@@ -1,4 +1,5 @@
 using StoreApp.DTOs;
+using StoreApp.DTOs.Auth;
 using StoreApp.Models;
 using StoreApp.Data;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +31,7 @@ public class AuthService
 
     public async Task RegisterAsync(RegisterDto dto)
     {
-        
+
         var exists =
         await _context.Users.AnyAsync(
             u =>
@@ -57,7 +58,7 @@ public class AuthService
         await _context.SaveChangesAsync();
     }
 
-    public async Task<AuthResponseDto> LoginAsync(
+    public async Task<AuthResultDto> LoginAsync(
     LoginDto dto)
     {
         var user = await _context.Users.FirstOrDefaultAsync(
@@ -99,14 +100,18 @@ public class AuthService
 
         await _context.SaveChangesAsync();
 
-        return new AuthResponseDto
+        return new AuthResultDto
         {
-            AccessToken = accessToken,
-            RefreshToken = refreshToken
+            UserId = user.Id,
+            Tokens = new TokenDto
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken
+            }
         };
     }
 
-    public async Task<AuthResponseDto> RefreshTokenAsync(
+    public async Task<TokenDto> RefreshTokenAsync(
         RefreshTokenRequestDto dto)
     {
         var token =
@@ -140,7 +145,7 @@ public class AuthService
                 token.User.Email,
                 token.User.UserName);
 
-        return new AuthResponseDto
+        return new TokenDto
         {
             AccessToken = accessToken,
             RefreshToken = token.Token
