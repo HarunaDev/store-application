@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using StoreApp.DTOs;
 using StoreApp.Services;
+using StoreApp.DTOs.Responses;
 
 namespace StoreApp.Controllers;
 
 [ApiController]
+[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+[ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
@@ -20,11 +23,27 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register(
         RegisterDto dto)
     {
-        await _authService.RegisterAsync(dto);
-
-        return Ok();
+        try
+        {
+            await _authService.RegisterAsync(dto);
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "User registered successfully"
+            });
+        }
+        catch (Exception)
+        {
+            // log ex internally
+            return BadRequest(new ErrorResponse
+            {
+                ErrorCode = "REGISTRATION_FAILED",
+                Message = "Unable to register user"
+            });
+        }
     }
 
+    [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
     [HttpPost("login")]
     public async Task<IActionResult> Login(
         LoginDto dto)
@@ -36,17 +55,64 @@ public class AuthController : ControllerBase
         // {
         //     accessToken = token
         // });
-        var result =
-        await _authService.LoginAsync(dto);
 
-        return Ok(result);
+        // var result =
+        // await _authService.LoginAsync(dto);
+
+        // return Ok(result);
+        try
+        {
+            var result = await _authService.LoginAsync(dto);
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new ApiResponse<AuthResponseDto>
+            {
+                Success = true,
+                Message = "User Logged in successfully",
+                Data = result
+            });
+        }
+        catch (Exception)
+        {
+            return BadRequest(new ErrorResponse
+            {
+                ErrorCode = "AUTHENTICATION_FAILED",
+                Message = "Unable to authenticate user"
+            });
+        }
     }
 
+    [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken(RefreshTokenRequestDto dto)
     {
-        var result = await _authService.RefreshTokenAsync(dto);
+        try
+        {
+            var result = await _authService.RefreshTokenAsync(dto);
 
-        return Ok(result);
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new ApiResponse<AuthResponseDto>
+            {
+                Success = true,
+                Message = "Success",
+                Data = result
+            });
+        }
+        catch (Exception)
+        {
+            return BadRequest(new ErrorResponse
+            {
+                ErrorCode = "AUTHENTICATION_FAILED",
+                Message = "Unable to get tokens"
+            });
+        }
     }
 }
