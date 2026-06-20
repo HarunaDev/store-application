@@ -1,5 +1,5 @@
 using FluentValidation;
-using StoreApp.DTOs;
+using StoreApp.DTOs.Product;
 
 namespace StoreApp.Validators;
 

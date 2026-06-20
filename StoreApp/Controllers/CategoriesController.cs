@@ -24,16 +24,16 @@ public class CategoriesController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<IEnumerable<CategoryDto>>), StatusCodes.Status200OK)]
-    public IActionResult GetCategories()
+    public async Task<IActionResult> GetCategories()
     {
         try
         {
-            var categories = _categoryService.GetCategories();
+            var categories = await _categoryService.GetCategoriesAsync();
 
-            if (categories is null)
-            {
-                return NotFound();
-            }
+            // if (categories is null)
+            // {
+            //     return NotFound();
+            // }
 
             var categoryDtos = categories.Select(c => new CategoryDto 
             { 
@@ -61,16 +61,16 @@ public class CategoriesController : ControllerBase
 
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(ApiResponse<CategoryDto>), StatusCodes.Status200OK)]
-    public IActionResult GetCategory(int id)
+    public async Task<IActionResult> GetCategory(int id)
     {
         try
         {
-            var category = _categoryService.GetCategoryById(id);
+            var category = await _categoryService.GetCategoryByIdAsync(id);
 
-            if (category is null)
-            {
-                return NotFound();
-            }
+            // if (category is null)
+            // {
+            //     return NotFound();
+            // }
 
             var categoryDto = new CategoryDto
             {
@@ -97,14 +97,13 @@ public class CategoriesController : ControllerBase
 
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<CategoryDto>), StatusCodes.Status200OK)]
-    public IActionResult AddCategory(CreateCategoryDto dto)
+    public async Task<IActionResult> AddCategory(CreateCategoryDto dto)
     {
         try
         {
             var category = new Category(0, dto.Name);
 
-            var createdCategory =
-            _categoryService.AddCategory(category);
+            var createdCategory = await _categoryService.AddCategoryAsync(category);
 
             // Map Domain Model to DTO
             var categoryDto = new CategoryDto
