@@ -141,34 +141,89 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [ProducesResponseType(typeof(ApiResponse<ProductDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateProduct(
         int id,
-        Product updatedProduct
+        [FromBody] Product updatedProduct
     )
     {
-        var updated = await _productService.UpdateProductAsync(
-            id,
-            updatedProduct
-        );
-
-        if (!updated)
+        try
         {
-            return NotFound();
+            var updated = await _productService.UpdateProductAsync(
+                id,
+                updatedProduct
+            );
+
+            if (!updated)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    ErrorCode = "PRODUCT_NOT_FOUND",
+                    Message = "Product not found"
+                });
+            }
+
+            var productDto = new ProductDto
+            {
+                Id = updatedProduct.Id,
+                Name = updatedProduct.Name,
+                Price = updatedProduct.Price,
+                HasDiscount = updatedProduct.HasDiscount,
+                CategoryId = updatedProduct.CategoryId,
+                Size = updatedProduct.Size,
+                Warranty = updatedProduct.Warranty,
+                Brand = updatedProduct.Brand
+            };
+
+            return Ok(new ApiResponse<ProductDto>
+            {
+                Success = true,
+                Message = "Product updated successfully",
+                Data = productDto
+            });
+        }
+        catch (Exception)
+        {
+            return BadRequest(new ErrorResponse
+            {
+                ErrorCode = "UPDATE_PRODUCT_FAILED",
+                Message = "Unable to update product"
+            });
         }
 
-        return Ok(updatedProduct);
     }
 
     [HttpDelete("{id}")]
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status200OK)]
     public async Task<IActionResult> DeleteProduct(int id)
     {
-        var deleted = await _productService.DeleteProductAsync(id);
-
-        if (!deleted)
+        try
         {
-            return NotFound();
-        }
+            var deleted = await _productService.DeleteProductAsync(id);
 
-        return NoContent();
+            if (!deleted)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    ErrorCode = "PRODUCT_NOT_FOUND",
+                    Message = "Product not found"
+                });
+            }
+
+            return Ok(new ApiResponse<object?>
+            {
+                Success = true,
+                Message = "Product deleted successfully",
+                Data = null
+            });
+        }
+        catch (Exception)
+        {
+            return BadRequest(new ErrorResponse
+            {
+                ErrorCode = "DELETE_PRODUCT_FAILED",
+                Message = "Unable to delete product"
+            });
+        }
     }
 }
