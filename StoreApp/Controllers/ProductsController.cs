@@ -2,8 +2,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
 using StoreApp.DTOs;
+using StoreApp.DTOs.Product;
 using StoreApp.Models;
+using StoreApp.DTOs.Responses;
 using StoreApp.Services;
+using System.Drawing;
 
 
 
@@ -12,6 +15,7 @@ namespace StoreApp.Controllers;
 [Authorize]
 [EnableRateLimiting("ApiPolicy")]
 [ApiController]
+[ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
 [Route("api/products")]
 public class ProductsController : ControllerBase
 {
@@ -23,65 +27,203 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetProducts()
+    [ProducesResponseType(typeof(ApiResponse<IEnumerable<ProductDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetProducts()
     {
-        return Ok(_productService.GetProducts());
+        try
+        {
+            var products = await _productService.GetProductsAsync();
+
+            var productDtos = products.Select(p => new ProductDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Price = p.Price,
+                HasDiscount = p.HasDiscount,
+                CategoryId = p.CategoryId,
+                Size = p?.Size,
+                Warranty = p?.Warranty,
+                Brand = p?.Brand
+            });
+
+            return Ok(new ApiResponse<IEnumerable<ProductDto>>
+            {
+                Success = true,
+                Message = "Products retrieved successfully",
+                Data = productDtos
+            });
+
+        }
+        catch (Exception)
+        {
+            return BadRequest(new ErrorResponse
+            {
+                ErrorCode = "FETCH_PRODUCTS_FAILED",
+                Message = "Unable to retreive products"
+            });
+        }
     }
 
     [HttpGet("{id}")]
-    public IActionResult GetProduct(int id)
+    [ProducesResponseType(typeof(ApiResponse<IEnumerable<ProductDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetProduct(int id)
     {
-        var product = _productService.GetProductById(id);
-
-        if (product is null)
+        try
         {
-            return NotFound();
-        }
+            var product = await _productService.GetProductByIdAsync(id);
 
-        return Ok(product);
+            if (product is null)
+            {
+                return NotFound();
+            }
+
+            var productDto = new ProductDto
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Price = product.Price,
+                HasDiscount = product.HasDiscount,
+                CategoryId = product.CategoryId
+            };
+
+            return Ok(new ApiResponse<ProductDto>
+            {
+                Success = true,
+                Message = "Product retrieved successfully",
+                Data = productDto
+            });
+        }
+        catch (Exception)
+        {
+            return BadRequest(new ErrorResponse
+            {
+                ErrorCode = "FETCH_PRODUCT_FAILED",
+                Message = "Unable to retreive product"
+            });
+        }
     }
 
     [HttpPost]
-    public IActionResult AddProduct([FromBody] CreateProductDto dto)
+    [ProducesResponseType(typeof(ApiResponse<IEnumerable<ProductDto>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> AddProduct([FromBody] CreateProductDto dto)
     {
-        var createdProduct = _productService.AddProduct(dto);
+        try
+        {
+            var product = await _productService.AddProductAsync(dto);
 
-        return CreatedAtAction(
-            nameof(GetProduct),
-            new { id = createdProduct.Id },
-            createdProduct
-        );
+            var productDto = new ProductDto
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Price = product.Price,
+                HasDiscount = product.HasDiscount,
+                CategoryId = product.CategoryId,
+                Size = product?.Size,
+                Warranty = product?.Warranty,
+                Brand = product?.Brand
+            };
+
+            return Ok(new ApiResponse<ProductDto>
+            {
+                Success = true,
+                Message = "Product created successfully",
+                Data = productDto
+            });
+        }
+        catch (Exception)
+        {
+            return BadRequest(new ErrorResponse
+            {
+                ErrorCode = "CREATE_PRODUCT_FAILED",
+                Message = "Unable to create product"
+            });
+        }
     }
 
     [HttpPut("{id}")]
-    public IActionResult UpdateProduct(
+    [ProducesResponseType(typeof(ApiResponse<ProductDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> UpdateProduct(
         int id,
-        Product updatedProduct
+        [FromBody] Product updatedProduct
     )
     {
-        var updated = _productService.UpdateProduct(
-            id,
-            updatedProduct
-        );
-
-        if (!updated)
+        try
         {
-            return NotFound();
+            var updated = await _productService.UpdateProductAsync(
+                id,
+                updatedProduct
+            );
+
+            if (!updated)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    ErrorCode = "PRODUCT_NOT_FOUND",
+                    Message = "Product not found"
+                });
+            }
+
+            var productDto = new ProductDto
+            {
+                Id = updatedProduct.Id,
+                Name = updatedProduct.Name,
+                Price = updatedProduct.Price,
+                HasDiscount = updatedProduct.HasDiscount,
+                CategoryId = updatedProduct.CategoryId,
+                Size = updatedProduct.Size,
+                Warranty = updatedProduct.Warranty,
+                Brand = updatedProduct.Brand
+            };
+
+            return Ok(new ApiResponse<ProductDto>
+            {
+                Success = true,
+                Message = "Product updated successfully",
+                Data = productDto
+            });
+        }
+        catch (Exception)
+        {
+            return BadRequest(new ErrorResponse
+            {
+                ErrorCode = "UPDATE_PRODUCT_FAILED",
+                Message = "Unable to update product"
+            });
         }
 
-        return Ok(updatedProduct);
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeleteProduct(int id)
+    [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> DeleteProduct(int id)
     {
-        var deleted = _productService.DeleteProduct(id);
-
-        if (!deleted)
+        try
         {
-            return NotFound();
-        }
+            var deleted = await _productService.DeleteProductAsync(id);
 
-        return NoContent();
+            if (!deleted)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    ErrorCode = "PRODUCT_NOT_FOUND",
+                    Message = "Product not found"
+                });
+            }
+
+            return Ok(new ApiResponse<object?>
+            {
+                Success = true,
+                Message = "Product deleted successfully",
+                Data = null
+            });
+        }
+        catch (Exception)
+        {
+            return BadRequest(new ErrorResponse
+            {
+                ErrorCode = "DELETE_PRODUCT_FAILED",
+                Message = "Unable to delete product"
+            });
+        }
     }
 }

@@ -1,81 +1,100 @@
+using Microsoft.EntityFrameworkCore;
+using StoreApp.Data;
 using StoreApp.DTOs;
+using StoreApp.DTOs.Product;
 using StoreApp.Models;
 
 namespace StoreApp.Services;
 
 public class ProductService
 {
-    private readonly List<Product> _products;
+    // private readonly List<Product> _products;
+    private readonly StoreAppDbContext _context;
 
     private readonly CategoryService _categoryService;
 
     private readonly ILogger<ProductService> _logger;
 
-    public ProductService(CategoryService categoryService, ILogger<ProductService> logger)
+    public ProductService(StoreAppDbContext context, CategoryService categoryService, ILogger<ProductService> logger)
     {
+        _context = context;
         _categoryService = categoryService;
         _logger = logger;
-        _products = new List<Product>
-        {
-            new Clothing(
-                1,
-                "Samo Vintage Shirt",
-                49.99m,
-                2,
-                true,
-                1
-            ),
+        // _products = new List<Product>
+        // {
+        //     new Clothing(
+        //         1,
+        //         "Samo Vintage Shirt",
+        //         49.99m,
+        //         2,
+        //         true,
+        //         1
+        //     ),
 
-            new Electronics(
-                2,
-                "Television",
-                334.55m,
-                true,
-                "Philips",
-                true,
-                2
-            )
-        };
+        //     new Electronics(
+        //         2,
+        //         "Television",
+        //         334.55m,
+        //         true,
+        //         "Philips",
+        //         true,
+        //         2
+        //     )
+        // };
     }
 
-    public List<Product> GetProducts()
+    public async Task<List<Product>> GetProductsAsync()
     {
-        return _products;
+        return await _context.Products.Include(p => p.Category).ToListAsync();
     }
 
-    public Product? GetProductById(int id)
+    public async Task<Product?> GetProductByIdAsync(int id)
     {
-        return _products.FirstOrDefault(p => p.Id == id);
+        return await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
+        // return await _context.Products.FindAsync(id);
     }
 
-    public Product AddProduct(CreateProductDto dto)
+    public async Task<Product> AddProductAsync(CreateProductDto dto)
     {
-        int nextId = _products.Any()
-        ? _products.Max(p => p.Id) + 1
-        : 1;
+        // int nextId = _products.Any()
+        // ? _products.Max(p => p.Id) + 1
+        // : 1;
 
-        var category = _categoryService.GetCategoryById(dto.CategoryId);
+
+        var category = await _categoryService.GetCategoryByIdAsync(dto.CategoryId);
 
         if (category is null)
             throw new Exception("Invalid category");
 
-        var product = new Product(nextId, dto.Name, dto.Price, dto.HasDiscount, dto.CategoryId);
+        var product = new Product
+        {
+            Name = dto.Name,
+            Price = dto.Price,
+            HasDiscount = dto.HasDiscount,
+            CategoryId = dto.CategoryId,
+            Category = category,
 
-        product.Category = category;
+            Size = dto.Size,
+            Warranty = dto.Warranty,
+            Brand = dto.Brand
+        };
+
+        _context.Products.Add(product);
+        await _context.SaveChangesAsync();
         _logger.LogInformation(
                     "Creating product. Name={Name}, CategoryId={CategoryId}",
                     dto.Name,
                     dto.CategoryId
                 );
-        _products.Add(product);
+        // _products.Add(product);
 
 
         return product;
     }
 
-    public bool UpdateProduct(int id, Product updatedProduct)
+    public async Task<bool> UpdateProductAsync(int id, Product updatedProduct)
     {
-        var existingProduct = GetProductById(id);
+        var existingProduct = await GetProductByIdAsync(id);
 
         if (existingProduct is null)
         {
@@ -90,6 +109,7 @@ public class ProductService
         existingProduct.Price = updatedProduct.Price;
         existingProduct.HasDiscount = updatedProduct.HasDiscount;
 
+        await _context.SaveChangesAsync();
         _logger.LogInformation(
             "Updating product {ProductId}",
             id
@@ -98,9 +118,9 @@ public class ProductService
         return true;
     }
 
-    public bool DeleteProduct(int id)
+    public async Task<bool> DeleteProductAsync(int id)
     {
-        var product = GetProductById(id);
+        var product = await GetProductByIdAsync(id);
 
         if (product is null)
         {
@@ -111,7 +131,8 @@ public class ProductService
             return false;
         }
 
-        _products.Remove(product);
+        _context.Products.Remove(product);
+        await _context.SaveChangesAsync();
         _logger.LogInformation(
             "Deleting product {ProductId}",
             id

@@ -1,5 +1,3 @@
-using System.ComponentModel;
-
 namespace StoreApp.Models;
 
 public class Product
@@ -7,14 +5,14 @@ public class Product
     private decimal _price;
 
     public int Id { get; set; }
-
     public string Name { get; set; } = "";
-
     public bool HasDiscount { get; set; }
-
     public int CategoryId { get; set; }
-
     public Category? Category { get; set; }
+
+    public int? Size { get; set; }
+    public bool? Warranty { get; set; }
+    public string? Brand { get; set; }
 
     public decimal Price
     {
@@ -26,13 +24,11 @@ public class Product
         }
     }
 
-    public Product(
-        int id,
-        string name,
-        decimal price,
-        bool hasDiscount,
-        int categoryId
-    )
+    // EF Core needs this
+    public Product() { }
+
+    // Optional convenience constructor
+    public Product(int id, string name, decimal price, bool hasDiscount, int categoryId)
     {
         Id = id;
         Name = name;
@@ -47,14 +43,10 @@ public class Product
         {
             return discountable.ApplyDiscount(5);
         }
-
         return Price;
     }
 
-    public static decimal CalculateDiscount(
-        decimal price,
-        decimal discountPercentage
-    )
+    public static decimal CalculateDiscount(decimal price, decimal discountPercentage)
     {
         return price - (price * (discountPercentage / 100m));
     }

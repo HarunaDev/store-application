@@ -33,8 +33,8 @@ builder.Host.UseSerilog();
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSingleton<ProductService>();
-builder.Services.AddSingleton<CategoryService>();
+builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<CategoryService>();
 builder.Services.AddSingleton<PasswordService>();
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddScoped<AuthService>();

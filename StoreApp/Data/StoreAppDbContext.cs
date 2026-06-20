@@ -15,4 +15,8 @@ public class StoreAppDbContext : DbContext
 
     public DbSet<RefreshToken> RefreshTokens =>
         Set<RefreshToken>();
+
+    public DbSet<Category> Categories => Set<Category>();
+
+    public DbSet<Product> Products => Set<Product>();
 }
