@@ -20,6 +20,8 @@ public class ProductDto
     public bool? Warranty { get; set; }
 
     public string? Brand { get; set; }
+
+    public string? ImageUrl { get; set; }
 }
 
 public class CreateProductDto
@@ -39,4 +41,25 @@ public class CreateProductDto
     public bool? Warranty { get; set; }
 
     public string? Brand { get; set; }
+
+    public IFormFile? ImageFile { get; set; }
+}
+
+public class UpdateProductDto
+{
+    public string Name { get; set; } = "";
+
+    public decimal Price { get; set; }
+
+    public bool HasDiscount { get; set; }
+
+    public int CategoryId { get; set; }
+
+    public int? Size { get; set; }
+
+    public bool? Warranty { get; set; }
+
+    public string? Brand { get; set; }
+
+    public IFormFile? ImageFile { get; set; }
 }

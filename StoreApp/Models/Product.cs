@@ -14,6 +14,8 @@ public class Product
     public bool? Warranty { get; set; }
     public string? Brand { get; set; }
 
+    public string? ImageUrl { get; set; }
+
     public decimal Price
     {
         get => _price;

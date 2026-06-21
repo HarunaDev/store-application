@@ -43,7 +43,8 @@ public class ProductsController : ControllerBase
                 CategoryId = p.CategoryId,
                 Size = p?.Size,
                 Warranty = p?.Warranty,
-                Brand = p?.Brand
+                Brand = p?.Brand,
+                ImageUrl = p.ImageUrl
             });
 
             return Ok(new ApiResponse<IEnumerable<ProductDto>>
@@ -83,7 +84,11 @@ public class ProductsController : ControllerBase
                 Name = product.Name,
                 Price = product.Price,
                 HasDiscount = product.HasDiscount,
-                CategoryId = product.CategoryId
+                CategoryId = product.CategoryId,
+                Size = product.Size,
+                Warranty = product.Warranty,
+                Brand = product.Brand,
+                ImageUrl = product.ImageUrl
             };
 
             return Ok(new ApiResponse<ProductDto>
@@ -104,8 +109,9 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPost]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(ApiResponse<IEnumerable<ProductDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> AddProduct([FromBody] CreateProductDto dto)
+    public async Task<IActionResult> AddProduct([FromForm] CreateProductDto dto)
     {
         try
         {
@@ -120,7 +126,8 @@ public class ProductsController : ControllerBase
                 CategoryId = product.CategoryId,
                 Size = product?.Size,
                 Warranty = product?.Warranty,
-                Brand = product?.Brand
+                Brand = product?.Brand,
+                ImageUrl = product.ImageUrl
             };
 
             return Ok(new ApiResponse<ProductDto>
@@ -141,20 +148,21 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(ApiResponse<ProductDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateProduct(
         int id,
-        [FromBody] Product updatedProduct
+        [FromForm] UpdateProductDto dto
     )
     {
         try
         {
-            var updated = await _productService.UpdateProductAsync(
+            var updatedProduct = await _productService.UpdateProductAsync(
                 id,
-                updatedProduct
+                dto
             );
 
-            if (!updated)
+            if (updatedProduct is null)
             {
                 return NotFound(new ErrorResponse
                 {
@@ -172,7 +180,8 @@ public class ProductsController : ControllerBase
                 CategoryId = updatedProduct.CategoryId,
                 Size = updatedProduct.Size,
                 Warranty = updatedProduct.Warranty,
-                Brand = updatedProduct.Brand
+                Brand = updatedProduct.Brand,
+                ImageUrl = updatedProduct.ImageUrl
             };
 
             return Ok(new ApiResponse<ProductDto>
@@ -182,12 +191,12 @@ public class ProductsController : ControllerBase
                 Data = productDto
             });
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             return BadRequest(new ErrorResponse
             {
                 ErrorCode = "UPDATE_PRODUCT_FAILED",
-                Message = "Unable to update product"
+                Message = ex.Message
             });
         }
 
