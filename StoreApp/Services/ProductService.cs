@@ -1,8 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using Supabase;
+using Supabase.Storage;
 using StoreApp.Data;
 using StoreApp.DTOs;
 using StoreApp.DTOs.Product;
 using StoreApp.Models;
+
 
 namespace StoreApp.Services;
 
@@ -45,7 +48,7 @@ public class ProductService
 
     public async Task<List<Product>> GetProductsAsync()
     {
-        return await _context.Products.Include(p => p.Category).ToListAsync();
+        return await _context.Products.Include(p => p.Category).OrderBy(p => p.Id).ToListAsync();
     }
 
     public async Task<Product?> GetProductByIdAsync(int id)
@@ -66,6 +69,31 @@ public class ProductService
         if (category is null)
             throw new Exception("Invalid category");
 
+        string? imageUrl = null;
+        if (dto.ImageFile != null)
+        {
+            // Upload to Supabase Storage
+            using var stream = dto.ImageFile.OpenReadStream();
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            var fileBytes = memoryStream.ToArray();
+            var fileName = $"{Guid.NewGuid()}_{dto.ImageFile.FileName}";
+
+            // Use Supabase client SDK to upload
+            var supabase = new Supabase.Client(
+                Environment.GetEnvironmentVariable("SUPABASE_URL")!,
+                Environment.GetEnvironmentVariable("SUPABASE_KEY")!
+            );
+
+            await supabase.Storage
+                .From("product-images")
+                .Upload(fileBytes, fileName, new Supabase.Storage.FileOptions
+                {
+                    ContentType = dto.ImageFile.ContentType
+                });
+            imageUrl = supabase.Storage.From("product-images").GetPublicUrl(fileName);
+        }
+
         var product = new Product
         {
             Name = dto.Name,
@@ -76,7 +104,8 @@ public class ProductService
 
             Size = dto.Size,
             Warranty = dto.Warranty,
-            Brand = dto.Brand
+            Brand = dto.Brand,
+            ImageUrl = imageUrl
         };
 
         _context.Products.Add(product);
@@ -92,7 +121,7 @@ public class ProductService
         return product;
     }
 
-    public async Task<bool> UpdateProductAsync(int id, Product updatedProduct)
+    public async Task<Product?> UpdateProductAsync(int id, UpdateProductDto dto)
     {
         var existingProduct = await GetProductByIdAsync(id);
 
@@ -102,12 +131,26 @@ public class ProductService
                 "Update failed. Product {ProductId} not found",
                 id
             );
-            return false;
+            return null;
         }
 
-        existingProduct.Name = updatedProduct.Name;
-        existingProduct.Price = updatedProduct.Price;
-        existingProduct.HasDiscount = updatedProduct.HasDiscount;
+        var category = await _categoryService.GetCategoryByIdAsync(dto.CategoryId);
+        if (category is null)
+            throw new Exception("Invalid category");
+
+        existingProduct.Name = dto.Name;
+        existingProduct.Price = dto.Price;
+        existingProduct.HasDiscount = dto.HasDiscount;
+        existingProduct.CategoryId = dto.CategoryId;
+        existingProduct.Category = category;
+        existingProduct.Size = dto.Size;
+        existingProduct.Warranty = dto.Warranty;
+        existingProduct.Brand = dto.Brand;
+
+        if (dto.ImageFile != null)
+        {
+            existingProduct.ImageUrl = await UploadProductImageAsync(dto.ImageFile);
+        }
 
         await _context.SaveChangesAsync();
         _logger.LogInformation(
@@ -115,7 +158,7 @@ public class ProductService
             id
         );
 
-        return true;
+        return existingProduct;
     }
 
     public async Task<bool> DeleteProductAsync(int id)
@@ -139,5 +182,26 @@ public class ProductService
         );
 
         return true;
+    }
+
+    private async Task<string> UploadProductImageAsync(IFormFile imageFile)
+    {
+        using var stream = imageFile.OpenReadStream();
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        var fileBytes = memoryStream.ToArray();
+        var fileName = $"{Guid.NewGuid()}_{imageFile.FileName}";
+
+        var supabase = new Supabase.Client(Environment.GetEnvironmentVariable("SUPABASE_URL")!,
+        Environment.GetEnvironmentVariable("SUPABASE_KEY")!);
+
+        await supabase.Storage
+        .From("product-images")
+        .Upload(fileBytes, fileName, new Supabase.Storage.FileOptions
+        {
+            ContentType = imageFile.ContentType
+        });
+
+        return supabase.Storage.From("product-images").GetPublicUrl(fileName);
     }
 }
