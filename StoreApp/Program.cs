@@ -166,12 +166,12 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHsts();
-}
+// if (!app.Environment.IsDevelopment())
+// {
+    // app.UseHsts();
+// }
 
 app.UseRateLimiter();
 
