@@ -1,0 +1,47 @@
+name: Deploy to MonsterASP
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '10.0.x'   # since you’re using .NET 10
+
+    - name: Publish project
+      run: dotnet publish ./StoreApp/StoreApp.csproj -c Release -o ./publish
+
+    - name: Create .env
+      run: |
+        cat > ./WebApi/.env << EOF
+        JWT_ISSUER=${{ secrets.JWT_ISSUER }}
+        JWT_AUDIENCE=${{ secrets.JWT_AUDIENCE }}
+        JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+        DB_HOST=${{ secrets.DB_HOST }}
+        DB_PORT=${{ secrets.DB_PORT }}
+        DB_NAME=${{ secrets.DB_NAME }}
+        DB_USER=${{ secrets.DB_USER }}
+        DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+        SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+        SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
+        EOF
+    
+    - name: Deploy via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.0
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./publish/
+        server-dir: /wwwroot/
+        exclude: |
+          **/StoreApp
