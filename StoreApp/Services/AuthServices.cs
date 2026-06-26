@@ -3,6 +3,7 @@ using StoreApp.DTOs.Auth;
 using StoreApp.Models;
 using StoreApp.Data;
 using Microsoft.EntityFrameworkCore;
+using StoreApp.Exceptions;
 
 namespace StoreApp.Services;
 
@@ -40,7 +41,7 @@ public class AuthService
 
         if (exists)
         {
-            throw new Exception(
+            throw new ConflictException(
                 "Username or Email already exists");
         }
 
@@ -66,7 +67,7 @@ public class AuthService
 
         if (user is null)
         {
-            throw new UnauthorizedAccessException("Invalid credentials");
+            throw new UnauthorizedException("Invalid email or password");
         }
 
         var valid =
@@ -76,8 +77,8 @@ public class AuthService
 
         if (!valid)
         {
-            throw new Exception(
-                "Invalid credentials");
+            throw new UnauthorizedException(
+                "Invalid email or password");
         }
 
         var accessToken =
@@ -123,20 +124,20 @@ public class AuthService
 
         if (token is null)
         {
-            throw new Exception(
+            throw new UnauthorizedException(
                 "Invalid refresh token");
         }
 
         if (token.IsRevoked)
         {
-            throw new Exception(
-                "Refresh token revoked");
+            throw new UnauthorizedException(
+                "Refresh token has been revoked");
         }
 
         if (token.ExpiresAt < DateTime.UtcNow)
         {
-            throw new Exception(
-                "Refresh token expired");
+            throw new UnauthorizedException(
+                "Refresh token has expired");
         }
 
         var accessToken =

@@ -1,6 +1,7 @@
 using Serilog;
 using FluentValidation;
 using StoreApp.Services;
+using StoreApp.DTOs.Responses;
 using StoreApp.Security;
 using StoreApp.Validators;
 using StoreApp.Extensions;
@@ -10,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Mvc;
 using System.Threading.RateLimiting;
 using System.Text;
 using DotNetEnv;
@@ -41,7 +43,26 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddSingleton<HtmlSanitizerService>();
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState
+                .Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            return new BadRequestObjectResult(new ErrorResponse
+            {
+                Success = false,
+                ErrorCode = "VALIDATION_ERROR",
+                Message = "Validation failed.",
+                Details = errors
+            });
+        };
+    });
 
 var connectionString =
     $"Host={Environment.GetEnvironmentVariable("DB_HOST")};" +
