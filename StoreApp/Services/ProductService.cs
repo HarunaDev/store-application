@@ -5,6 +5,7 @@ using StoreApp.Data;
 using StoreApp.DTOs;
 using StoreApp.DTOs.Product;
 using StoreApp.Models;
+using StoreApp.Exceptions;
 
 
 namespace StoreApp.Services;
@@ -51,9 +52,17 @@ public class ProductService
         return await _context.Products.Include(p => p.Category).OrderBy(p => p.Id).ToListAsync();
     }
 
-    public async Task<Product?> GetProductByIdAsync(int id)
+    public async Task<Product> GetProductByIdAsync(int id)
     {
-        return await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
+        var product = await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
+
+        if (product is null)
+        {
+            throw new NotFoundException("Product not found.");
+        }
+
+        return product;
+        // return await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
         // return await _context.Products.FindAsync(id);
     }
 
@@ -66,8 +75,16 @@ public class ProductService
 
         var category = await _categoryService.GetCategoryByIdAsync(dto.CategoryId);
 
-        if (category is null)
-            throw new Exception("Invalid category");
+        // if (category is null)
+        //     throw new ValidationException("Invalid category");
+
+        var exists = await _context.Products
+    .AnyAsync(p => p.Name == dto.Name);
+
+        if (exists)
+        {
+            throw new ConflictException("A product with this name already exists.");
+        }
 
         string? imageUrl = null;
         if (dto.ImageFile != null)
@@ -85,12 +102,20 @@ public class ProductService
                 Environment.GetEnvironmentVariable("SUPABASE_KEY")!
             );
 
-            await supabase.Storage
+            try
+            {
+                await supabase.Storage
                 .From("product-images")
                 .Upload(fileBytes, fileName, new Supabase.Storage.FileOptions
                 {
                     ContentType = dto.ImageFile.ContentType
                 });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Image upload failed.");
+                throw new ValidationException("Unable to upload image.");
+            }
             imageUrl = supabase.Storage.From("product-images").GetPublicUrl(fileName);
         }
 
@@ -121,22 +146,29 @@ public class ProductService
         return product;
     }
 
-    public async Task<Product?> UpdateProductAsync(int id, UpdateProductDto dto)
+    public async Task<Product> UpdateProductAsync(int id, UpdateProductDto dto)
     {
         var existingProduct = await GetProductByIdAsync(id);
 
-        if (existingProduct is null)
-        {
-            _logger.LogWarning(
-                "Update failed. Product {ProductId} not found",
-                id
-            );
-            return null;
-        }
+        // if (existingProduct is null)
+        // {
+        //     _logger.LogWarning(
+        //         "Update failed. Product {ProductId} not found",
+        //         id
+        //     );
+        //     return null;
+        // }
 
         var category = await _categoryService.GetCategoryByIdAsync(dto.CategoryId);
-        if (category is null)
-            throw new Exception("Invalid category");
+        // if (category is null)
+        //     throw new Exception("Invalid category");
+
+        var duplicate = await _context.Products.AnyAsync(p => p.Name == dto.Name && p.Id != id);
+
+        if (duplicate)
+        {
+            throw new ConflictException("A product with this name already exists.");
+        }
 
         existingProduct.Name = dto.Name;
         existingProduct.Price = dto.Price;
@@ -161,18 +193,18 @@ public class ProductService
         return existingProduct;
     }
 
-    public async Task<bool> DeleteProductAsync(int id)
+    public async Task DeleteProductAsync(int id)
     {
         var product = await GetProductByIdAsync(id);
 
-        if (product is null)
-        {
-            _logger.LogWarning(
-                "Delete failed. Product {ProductId} not found",
-                id
-            );
-            return false;
-        }
+        // if (product is null)
+        // {
+        //     _logger.LogWarning(
+        //         "Delete failed. Product {ProductId} not found",
+        //         id
+        //     );
+        //     return false;
+        // }
 
         _context.Products.Remove(product);
         await _context.SaveChangesAsync();
@@ -180,28 +212,35 @@ public class ProductService
             "Deleting product {ProductId}",
             id
         );
-
-        return true;
     }
 
     private async Task<string> UploadProductImageAsync(IFormFile imageFile)
     {
-        using var stream = imageFile.OpenReadStream();
-        using var memoryStream = new MemoryStream();
-        await stream.CopyToAsync(memoryStream);
-        var fileBytes = memoryStream.ToArray();
-        var fileName = $"{Guid.NewGuid()}_{imageFile.FileName}";
-
-        var supabase = new Supabase.Client(Environment.GetEnvironmentVariable("SUPABASE_URL")!,
-        Environment.GetEnvironmentVariable("SUPABASE_KEY")!);
-
-        await supabase.Storage
-        .From("product-images")
-        .Upload(fileBytes, fileName, new Supabase.Storage.FileOptions
+        try
         {
-            ContentType = imageFile.ContentType
-        });
+            using var stream = imageFile.OpenReadStream();
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            var fileBytes = memoryStream.ToArray();
+            var fileName = $"{Guid.NewGuid()}_{imageFile.FileName}";
 
-        return supabase.Storage.From("product-images").GetPublicUrl(fileName);
+            var supabase = new Supabase.Client(Environment.GetEnvironmentVariable("SUPABASE_URL")!,
+            Environment.GetEnvironmentVariable("SUPABASE_KEY")!);
+
+            await supabase.Storage
+            .From("product-images")
+            .Upload(fileBytes, fileName, new Supabase.Storage.FileOptions
+            {
+                ContentType = imageFile.ContentType
+            });
+
+            return supabase.Storage.From("product-images").GetPublicUrl(fileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to upload image.");
+
+            throw;
+        }
     }
 }

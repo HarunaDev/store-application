@@ -30,8 +30,6 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<IEnumerable<ProductDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetProducts()
     {
-        try
-        {
             var products = await _productService.GetProductsAsync();
 
             var productDtos = products.Select(p => new ProductDto
@@ -44,7 +42,7 @@ public class ProductsController : ControllerBase
                 Size = p?.Size,
                 Warranty = p?.Warranty,
                 Brand = p?.Brand,
-                ImageUrl = p.ImageUrl
+                ImageUrl = p?.ImageUrl
             });
 
             return Ok(new ApiResponse<IEnumerable<ProductDto>>
@@ -53,30 +51,13 @@ public class ProductsController : ControllerBase
                 Message = "Products retrieved successfully",
                 Data = productDtos
             });
-
-        }
-        catch (Exception)
-        {
-            return BadRequest(new ErrorResponse
-            {
-                ErrorCode = "FETCH_PRODUCTS_FAILED",
-                Message = "Unable to retreive products"
-            });
-        }
     }
 
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(ApiResponse<IEnumerable<ProductDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetProduct(int id)
     {
-        try
-        {
             var product = await _productService.GetProductByIdAsync(id);
-
-            if (product is null)
-            {
-                return NotFound();
-            }
 
             var productDto = new ProductDto
             {
@@ -97,15 +78,6 @@ public class ProductsController : ControllerBase
                 Message = "Product retrieved successfully",
                 Data = productDto
             });
-        }
-        catch (Exception)
-        {
-            return BadRequest(new ErrorResponse
-            {
-                ErrorCode = "FETCH_PRODUCT_FAILED",
-                Message = "Unable to retreive product"
-            });
-        }
     }
 
     [HttpPost]
@@ -113,8 +85,6 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<IEnumerable<ProductDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> AddProduct([FromForm] CreateProductDto dto)
     {
-        try
-        {
             var product = await _productService.AddProductAsync(dto);
 
             var productDto = new ProductDto
@@ -136,15 +106,6 @@ public class ProductsController : ControllerBase
                 Message = "Product created successfully",
                 Data = productDto
             });
-        }
-        catch (Exception)
-        {
-            return BadRequest(new ErrorResponse
-            {
-                ErrorCode = "CREATE_PRODUCT_FAILED",
-                Message = "Unable to create product"
-            });
-        }
     }
 
     [HttpPut("{id}")]
@@ -155,21 +116,10 @@ public class ProductsController : ControllerBase
         [FromForm] UpdateProductDto dto
     )
     {
-        try
-        {
             var updatedProduct = await _productService.UpdateProductAsync(
                 id,
                 dto
             );
-
-            if (updatedProduct is null)
-            {
-                return NotFound(new ErrorResponse
-                {
-                    ErrorCode = "PRODUCT_NOT_FOUND",
-                    Message = "Product not found"
-                });
-            }
 
             var productDto = new ProductDto
             {
@@ -190,34 +140,13 @@ public class ProductsController : ControllerBase
                 Message = "Product updated successfully",
                 Data = productDto
             });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new ErrorResponse
-            {
-                ErrorCode = "UPDATE_PRODUCT_FAILED",
-                Message = ex.Message
-            });
-        }
-
     }
 
     [HttpDelete("{id}")]
     [ProducesResponseType(typeof(ApiResponse<object?>), StatusCodes.Status200OK)]
     public async Task<IActionResult> DeleteProduct(int id)
     {
-        try
-        {
-            var deleted = await _productService.DeleteProductAsync(id);
-
-            if (!deleted)
-            {
-                return NotFound(new ErrorResponse
-                {
-                    ErrorCode = "PRODUCT_NOT_FOUND",
-                    Message = "Product not found"
-                });
-            }
+            await _productService.DeleteProductAsync(id);
 
             return Ok(new ApiResponse<object?>
             {
@@ -225,14 +154,5 @@ public class ProductsController : ControllerBase
                 Message = "Product deleted successfully",
                 Data = null
             });
-        }
-        catch (Exception)
-        {
-            return BadRequest(new ErrorResponse
-            {
-                ErrorCode = "DELETE_PRODUCT_FAILED",
-                Message = "Unable to delete product"
-            });
-        }
     }
 }

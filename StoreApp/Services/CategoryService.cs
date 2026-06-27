@@ -29,7 +29,7 @@ public class CategoryService
         return await _context.Categories.ToListAsync();
     }
 
-    public async Task<Category?> GetCategoryByIdAsync(int id)
+    public async Task<Category> GetCategoryByIdAsync(int id)
     {
         var category = await _context.Categories.FindAsync(id);
 
