@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StoreApp.Data;
 using StoreApp.Models;
+using StoreApp.Exceptions;
 
 namespace StoreApp.Services;
 
@@ -30,7 +31,15 @@ public class CategoryService
 
     public async Task<Category?> GetCategoryByIdAsync(int id)
     {
-        return await _context.Categories.FindAsync(id);
+        var category = await _context.Categories.FindAsync(id);
+
+        if (category is null)
+        {
+            throw new NotFoundException("Category not found.");
+        }
+
+        return category;
+        // return await _context.Categories.FindAsync(id);
 
         // if (category is null)
         // {
@@ -55,14 +64,29 @@ public class CategoryService
     {
         // category.Id = _categories.Max(c => c.Id) + 1;
 
+        // _context.Categories.Add(category);
+        // await _context.SaveChangesAsync();
+
+        // _logger.LogInformation(
+        //     "Category created. CategoryId={CategoryId}, Name={CategoryName}",
+        //     category.Id,
+        //     category.Name
+        // );
+        // return category;
+
+        var exists = await _context.Categories.AnyAsync(c => c.Name.ToLower() == category.Name.ToLower());
+
+        if (exists)
+        {
+            throw new ConflictException("Category already exists.");
+        }
+
         _context.Categories.Add(category);
+
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation(
-            "Category created. CategoryId={CategoryId}, Name={CategoryName}",
-            category.Id,
-            category.Name
-        );
+        _logger.LogInformation("Category created. CategoryId={CategoryId}, Name={CategoryName}", category.Id, category.Name);
+
         return category;
     }
 }

@@ -43,9 +43,8 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddSingleton<HtmlSanitizerService>();
 
-builder.Services
-    .AddControllers()
-    .ConfigureApiBehaviorOptions(options =>
+builder.Services.AddControllers();
+builder.Services.Configure<ApiBehaviorOptions>(options =>
     {
         options.InvalidModelStateResponseFactory = context =>
         {
@@ -78,7 +77,7 @@ builder.Services.AddDbContext<StoreAppDbContext>(
             connectionString
             // builder.Configuration.GetConnectionString(
             //     "DefaultConnection")
-            
+
             ));
 
 builder.Services.AddAuthentication(
@@ -183,7 +182,7 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 
-});
+            });
 
 var app = builder.Build();
 
@@ -191,7 +190,7 @@ var app = builder.Build();
 
 // if (!app.Environment.IsDevelopment())
 // {
-    // app.UseHsts();
+// app.UseHsts();
 // }
 
 app.UseRateLimiter();
