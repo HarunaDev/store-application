@@ -25,72 +25,27 @@ public class UsersController : ControllerBase
     public async Task<IActionResult>
         GetUsers()
     {
-        try
-        {
-            var users = await _userService.GetUsersAsync();
+        var users = await _userService.GetUsersAsync();
 
-            if (users is null)
-            {
-                return NotFound();
-            }
-            var userDtos = users.Select(u => new UserResponseDto
-            {
-                Id = u.Id,
-                UserName = u.UserName,
-                Email = u.Email
-            });
-
-            return Ok(new ApiResponse<IEnumerable<UserResponseDto>>
-            {
-                Success = true,
-                Message = "Users retreived successfully",
-                Data = userDtos
-            });
-        }
-        catch (Exception)
+        return Ok(new ApiResponse<IEnumerable<UserResponseDto>>
         {
-            return BadRequest(new ErrorResponse
-            {
-                ErrorCode = "FETCH_USERS_FAILED",
-                Message = "Unable to fetch users"
-            });
-        }
+            Success = true,
+            Message = "Users retreived successfully",
+            Data = users
+        });
     }
 
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(ApiResponse<UserResponseDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUser(string id)
     {
-        try
+        var user = await _userService.GetUserByIdAsync(id);
+
+        return Ok(new ApiResponse<UserResponseDto>
         {
-            var user = await _userService.GetUserByIdAsync(id);
-
-            if (user is null)
-            {
-                return NotFound();
-            }
-
-            var userDto = new UserResponseDto
-            {
-                Id = user.Id,
-                UserName = user.UserName,
-                Email = user.Email
-            };
-
-            return Ok(new ApiResponse<UserResponseDto>
-            {
-                Success = true,
-                Message = "User retreived successfully",
-                Data = userDto
-            });
-        }
-        catch (Exception)
-        {
-            return BadRequest(new ErrorResponse
-            {
-                ErrorCode = "FETCH_USER_FAILED",
-                Message = "Unable to fetch user"
-            });
-        }
+            Success = true,
+            Message = "User retreived successfully",
+            Data = user
+        });
     }
 }

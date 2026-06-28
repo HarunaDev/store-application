@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StoreApp.Data;
 using StoreApp.DTOs.User;
+using StoreApp.Exceptions;
 
 namespace StoreApp.Services;
 
@@ -15,7 +16,7 @@ public class UserService
 
     public async Task<List<UserResponseDto>> GetUsersAsync()
     {
-        return await _context.Users
+        var users = await _context.Users
             .Select(u => new UserResponseDto
             {
                 Id = u.Id,
@@ -23,11 +24,18 @@ public class UserService
                 Email = u.Email
             })
             .ToListAsync();
+
+        if (!users.Any())
+        {
+            throw new NotFoundException("No users found.");
+        }
+
+        return users;
     }
 
-    public async Task<UserResponseDto?> GetUserByIdAsync(string id)
+    public async Task<UserResponseDto> GetUserByIdAsync(string id)
     {
-        return await _context.Users
+        var user = await _context.Users
             .Where(u => u.Id == id)
             .Select(u => new UserResponseDto
             {
@@ -36,5 +44,11 @@ public class UserService
                 Email = u.Email
             })
             .FirstOrDefaultAsync();
+        if (user is null)
+        {
+            throw new NotFoundException("User not found.");
+        }
+
+        return user;
     }
 }
