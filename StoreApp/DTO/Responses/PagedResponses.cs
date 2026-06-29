@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using StoreApp.DTOs.Product;
-// using StoreApp.DTOs.Category;
+using StoreApp.DTOs.User;
 
 namespace StoreApp.DTOs.Responses
 {
@@ -16,14 +16,16 @@ namespace StoreApp.DTOs.Responses
     // Product-specific wrapper
     public class ProductPagedResponse : PagedResponse<ProductDto>
     {
+        [JsonPropertyOrder(5)]
         [JsonPropertyName("products")]
         public IEnumerable<ProductDto> Products { get; set; } = Enumerable.Empty<ProductDto>();
     }
 
-    // Category-specific wrapper
-    // public class CategoryPagedResponse : PagedResponse<CategoryDto>
-    // {
-    //     [JsonPropertyName("categories")]
-    //     public IEnumerable<CategoryDto> Categories { get; set; } = Enumerable.Empty<CategoryDto>();
-    // }
+    // User-specific wrapper
+    public class UserPagedResponse : PagedResponse<UserDto>
+    {
+        [JsonPropertyOrder(5)]
+        [JsonPropertyName("users")]
+        public IEnumerable<UserDto> Users { get; set; } = Enumerable.Empty<UserDto>();
+    }
 }

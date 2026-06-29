@@ -1,7 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using StoreApp.Data;
 using StoreApp.DTOs.User;
+using StoreApp.Models;
 using StoreApp.Exceptions;
+using StoreApp.Extensions;
+using StoreApp.DTOs.Responses;
 
 namespace StoreApp.Services;
 
@@ -14,23 +17,22 @@ public class UserService
         _context = context;
     }
 
-    public async Task<List<UserResponseDto>> GetUsersAsync()
+    public async Task<(IEnumerable<UserDto> Items, PagedResponse<UserDto> Meta)> GetUsersAsync(int pageNumber, int pageSize)
     {
-        var users = await _context.Users
-            .Select(u => new UserResponseDto
+        var query = _context.Users
+            .Select(u => new UserDto
             {
                 Id = u.Id,
                 UserName = u.UserName,
                 Email = u.Email
-            })
-            .ToListAsync();
+            });
 
-        if (!users.Any())
-        {
-            throw new NotFoundException("No users found.");
-        }
+        // if (!users.Any())
+        // {
+        //     throw new NotFoundException("No users found.");
+        // }
 
-        return users;
+        return await query.ToPagedResponseAsync(pageNumber, pageSize);
     }
 
     public async Task<UserResponseDto> GetUserByIdAsync(string id)
