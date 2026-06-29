@@ -10,7 +10,6 @@ namespace StoreApp.Controllers;
 
 [Authorize]
 [ApiController]
-// [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
 [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
 [Route("api/categories")]
 public class CategoriesController : ControllerBase
@@ -26,106 +25,61 @@ public class CategoriesController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<IEnumerable<CategoryDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCategories()
     {
-        try
+        var categories = await _categoryService.GetCategoriesAsync();
+
+        var categoryDtos = categories.Select(c => new CategoryDto
         {
-            var categories = await _categoryService.GetCategoriesAsync();
+            Id = c.Id,
+            Name = c.Name
+        });
 
-            // if (categories is null)
-            // {
-            //     return NotFound();
-            // }
-
-            var categoryDtos = categories.Select(c => new CategoryDto 
-            { 
-                Id = c.Id, 
-                Name = c.Name 
-            });
-
-            return Ok(new ApiResponse<IEnumerable<CategoryDto>>
-            {
-                Success = true,
-                Message = "Categories retrieved successfully",
-                Data = categoryDtos
-            });
-        }
-        catch (Exception)
+        return Ok(new ApiResponse<IEnumerable<CategoryDto>>
         {
-            return BadRequest(new ErrorResponse
-            {
-                ErrorCode = "FETCH_CATEGORIES_FAILED",
-                Message = "Unable to fetch categories"
-            });
-        }
-
+            Success = true,
+            Message = "Categories retrieved successfully",
+            Data = categoryDtos
+        });
     }
 
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(ApiResponse<CategoryDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCategory(int id)
     {
-        try
+        var category = await _categoryService.GetCategoryByIdAsync(id);
+
+        var categoryDto = new CategoryDto
         {
-            var category = await _categoryService.GetCategoryByIdAsync(id);
-
-            // if (category is null)
-            // {
-            //     return NotFound();
-            // }
-
-            var categoryDto = new CategoryDto
-            {
-                Id = category.Id,
-                Name = category.Name
-            };
-            return Ok(new ApiResponse<CategoryDto>
-            {
-                Success = true,
-                Message = "Category retreived successfully",
-                Data = categoryDto
-            });
-        }
-        catch (Exception)
+            Id = category.Id,
+            Name = category.Name
+        };
+        return Ok(new ApiResponse<CategoryDto>
         {
-            return BadRequest(new ErrorResponse
-            {
-                ErrorCode = "FETCH_CATEGORY_FAILED",
-                Message = "Unable to fetch category"
-            });
-        }
-
+            Success = true,
+            Message = "Category retreived successfully",
+            Data = categoryDto
+        });
     }
 
     [HttpPost]
     [ProducesResponseType(typeof(ApiResponse<CategoryDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> AddCategory(CreateCategoryDto dto)
     {
-        try
+        var category = new Category(0, dto.Name);
+
+        var createdCategory = await _categoryService.AddCategoryAsync(category);
+
+        // Map Domain Model to DTO
+        var categoryDto = new CategoryDto
         {
-            var category = new Category(0, dto.Name);
+            Id = createdCategory.Id,
+            Name = createdCategory.Name
+        };
 
-            var createdCategory = await _categoryService.AddCategoryAsync(category);
-
-            // Map Domain Model to DTO
-            var categoryDto = new CategoryDto
-            {
-                Id = createdCategory.Id,
-                Name = createdCategory.Name
-            };
-
-            return Ok(new ApiResponse<CategoryDto>
-            {
-                Success = true,
-                Message = "Category created successfully",
-                Data = categoryDto
-            });
-        }
-        catch (Exception)
+        return Ok(new ApiResponse<CategoryDto>
         {
-            return BadRequest(new ErrorResponse
-            {
-                ErrorCode = "CREATE_CATEGORY_FAILED",
-                Message = "Unable to create category"
-            });
-        }
+            Success = true,
+            Message = "Category created successfully",
+            Data = categoryDto
+        });
     }
 }

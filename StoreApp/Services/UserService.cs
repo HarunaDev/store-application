@@ -1,6 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using StoreApp.Data;
 using StoreApp.DTOs.User;
+using StoreApp.Models;
+using StoreApp.Exceptions;
+using StoreApp.Extensions;
+using StoreApp.DTOs.Responses;
 
 namespace StoreApp.Services;
 
@@ -13,21 +17,27 @@ public class UserService
         _context = context;
     }
 
-    public async Task<List<UserResponseDto>> GetUsersAsync()
+    public async Task<(IEnumerable<UserDto> Items, PagedResponse<UserDto> Meta)> GetUsersAsync(int pageNumber, int pageSize)
     {
-        return await _context.Users
-            .Select(u => new UserResponseDto
+        var query = _context.Users
+            .Select(u => new UserDto
             {
                 Id = u.Id,
                 UserName = u.UserName,
                 Email = u.Email
-            })
-            .ToListAsync();
+            });
+
+        // if (!users.Any())
+        // {
+        //     throw new NotFoundException("No users found.");
+        // }
+
+        return await query.ToPagedResponseAsync(pageNumber, pageSize);
     }
 
-    public async Task<UserResponseDto?> GetUserByIdAsync(string id)
+    public async Task<UserResponseDto> GetUserByIdAsync(string id)
     {
-        return await _context.Users
+        var user = await _context.Users
             .Where(u => u.Id == id)
             .Select(u => new UserResponseDto
             {
@@ -36,5 +46,11 @@ public class UserService
                 Email = u.Email
             })
             .FirstOrDefaultAsync();
+        if (user is null)
+        {
+            throw new NotFoundException("User not found.");
+        }
+
+        return user;
     }
 }
