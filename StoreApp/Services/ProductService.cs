@@ -6,6 +6,8 @@ using StoreApp.DTOs;
 using StoreApp.DTOs.Product;
 using StoreApp.Models;
 using StoreApp.Exceptions;
+using StoreApp.Extensions;
+using StoreApp.DTOs.Responses;
 
 
 namespace StoreApp.Services;
@@ -47,9 +49,13 @@ public class ProductService
         // };
     }
 
-    public async Task<List<Product>> GetProductsAsync()
+    public async Task<(IEnumerable<Product> Items, PagedResponse<Product> Meta)> GetProductsAsync(int pageNumber, int pageSize)
     {
-        return await _context.Products.Include(p => p.Category).OrderBy(p => p.Id).ToListAsync();
+        var query = _context.Products
+            .Include(p => p.Category)
+            .OrderBy(p => p.Id);
+        return await query.ToPagedResponseAsync(pageNumber, pageSize);
+        // return await _context.Products.Include(p => p.Category).OrderBy(p => p.Id).ToListAsync();
     }
 
     public async Task<Product> GetProductByIdAsync(int id)
